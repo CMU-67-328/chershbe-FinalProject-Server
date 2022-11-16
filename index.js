@@ -2,12 +2,25 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer')
 const fs = require('fs');
+const memeLib = require("./memeGenerator.js");
 const upload = multer({ dest: './images/' })
 
 const app = express();
 const port = 3005;
 let catMemes = [];
 let currentMeme = '{}';
+
+const memeGenerator = new memeLib({
+    canvasOptions: { // optional
+      canvasWidth: 500,
+      canvasHeight: 500
+    },
+    fontOptions: { // optional
+      fontSize: 46,
+      fontFamily: 'impact',
+      lineHeight: 2
+    }
+  });
 
 app.use(cors({
     origin: 'http://localhost:3000'
@@ -49,6 +62,19 @@ app.post('/api/savecurrent/', (req, res) => {
     } else {
         res.sendStatus(400);
     }
+});
+
+app.post('/api/creatememe/', (req, res) => {
+    console.log('Generating', req.body.filename);
+    memeGenerator.generateMeme({
+        // you can use either topText or bottomText
+        // or both of them at the same time
+        topText: req.body.toptext,
+        bottomText: req.body.bottomtext,
+        url: req.body.filename
+      }, (data) => {
+        res.send(data);
+      });
 });
 
 

@@ -9,6 +9,7 @@ const app = express();
 const port = 3005;
 let catMemes = [];
 let currentMeme = '{}';
+let stagedMemeData = '';
 
 const memeGenerator = new memeLib({
     canvasOptions: { // optional
@@ -54,10 +55,15 @@ app.get('/api/currentmeme/', (req, res) => {
 
 app.post('/api/savecurrent/', (req, res) => {
     if (currentMeme !== '{}') {
+        if (stagedMemeData !== '') {
+            const fileType = (currentMeme.mimetype === 'image/png') ? '.png' : '.jpg';
+            fs.writeFileSync('./images/' + currentMeme.filename + fileType, stagedMemeData, 'base64');
+        }
         catMemes.push(currentMeme);
         fs.writeFileSync('./data/catMemes.json', JSON.stringify(catMemes));
         currentMeme = '{}';
         fs.writeFileSync('./data/currentMeme.json', currentMeme);
+        stagedMemeData = '';
         res.sendStatus(200);
     } else {
         res.sendStatus(400);
@@ -73,8 +79,19 @@ app.post('/api/creatememe/', (req, res) => {
         bottomText: req.body.bottomtext,
         url: req.body.filename
       }, (data) => {
+        stagedMemeData = data;
         res.send(data);
       });
+});
+
+
+app.delete('/api/deletememe/:id', (req, res) => {
+    console.log('Delete', req.params.id);
+    const index = catMemes.findIndex((m) => m.findIndex === req.params.id);
+    catMemes.splice(index, 1);
+    console.log(catMemes);
+    fs.writeFileSync('./data/catMemes.json', JSON.stringify(catMemes));
+    res.send('Delete Successful!');
 });
 
 

@@ -79,11 +79,27 @@ app.post('/api/creatememe/', (req, res) => {
 
 
 app.listen(port, () => {
-    let rawData = fs.readFileSync('./data/catMemes.json');
-    catMemes = JSON.parse(rawData);
+    if (!fs.existsSync('./data/')) {
+        fs.mkdirSync('./data');
+        console.log('Created data directory');
+    }
+    const memesFile = './data/catMemes.json';
+    if (fs.existsSync(memesFile)) {
+        const rawData = fs.readFileSync(memesFile);
+        catMemes = JSON.parse(rawData);
+    } else {
+        // File doesn't exist so create it
+        fs.writeFileSync('./data/catMemes.json', JSON.stringify(catMemes));
+    }
     console.log('Loaded ' + catMemes.length + '  cat memes!');
-    rawData = fs.readFileSync('./data/currentMeme.json');
-    currentMeme = JSON.parse(rawData);
+    
+    const currentFile = './data/currentMeme.json';
+    if (fs.existsSync(currentFile)) {
+        const rawData = fs.readFileSync('./data/currentMeme.json');
+        currentMeme = JSON.parse(rawData);
+    } else {
+        fs.writeFileSync('./data/currentMeme.json', currentMeme);
+    }
     console.log('Loaded currentMeme!', currentMeme);
     console.log('Cat Meme API listening on port ' + port);
 });
